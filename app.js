@@ -27,21 +27,32 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
+const convertPlayerDbObjectToResponseObject = (dbObject) => {
+  return {
+    playerId: dbObject.player_id,
+    playerName: dbObject.player_name,
+  };
+};
+
 // ===============================API 1=================================================
 
 app.get("/players/", async (request, response) => {
   const query = `select * from player_details;`;
   const dbResponse = await db.all(query);
-  let result = [];
-  dbResponse.forEach((element) => {
-    const { player_id, player_name } = element;
-    let obj = {
-      playerId: player_id,
-      playerName: player_name,
-    };
-    result.push(obj);
-  });
-  response.send(result);
+
+  //   dbResponse.forEach((element) => {
+  //     const { player_id, player_name } = element;
+  //     let obj = {
+  //       playerId: player_id,
+  //       playerName: player_name,
+  //     };
+  //     result.push(obj);
+  //   });
+  response.send(
+    dbResponse.map((eachState) =>
+      convertPlayerDbObjectToResponseObject(eachState)
+    )
+  );
 });
 // ===============================API 2=================================================
 
