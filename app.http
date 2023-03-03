@@ -1,0 +1,36 @@
+
+//api1============================================
+get http://localhost:6000/players/
+
+
+
+//api2============================================
+
+###
+get http://localhost:6000/players/1
+
+//api3============================================
+###
+put http://localhost:6000/players/1
+Content-Type: application/json
+
+{
+  "playerName": "Raju"
+}
+//api4============================================
+###
+get http://localhost:6000/matches/1
+
+//api5============================================
+###
+get http://localhost:6000/players/1/matches
+
+//api6============================================
+###
+get http://localhost:6000/matches/1/players
+
+
+
+//api7============================================
+###
+get http://localhost:6000/players/1/playerScores
