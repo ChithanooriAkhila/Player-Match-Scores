@@ -27,32 +27,20 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-const convertPlayerDbObjectToResponseObject = (dbObject) => {
-  return {
-    playerId: dbObject.player_id,
-    playerName: dbObject.player_name,
-  };
-};
+const convertPlayerDbObjectToResponseObject = (dbObject) => ({
+  playerId: dbObject.player_id,
+  playerName: dbObject.player_name,
+});
 
 // ===============================API 1=================================================
 
 app.get("/players/", async (request, response) => {
   const query = `select * from player_details;`;
   const dbResponse = await db.all(query);
-
-  //   dbResponse.forEach((element) => {
-  //     const { player_id, player_name } = element;
-  //     let obj = {
-  //       playerId: player_id,
-  //       playerName: player_name,
-  //     };
-  //     result.push(obj);
-  //   });
-  response.send(
-    dbResponse.map((eachState) =>
-      convertPlayerDbObjectToResponseObject(eachState)
-    )
+  const res = dbResponse.map((eachState) =>
+    convertPlayerDbObjectToResponseObject(eachState)
   );
+  response.send(res);
 });
 // ===============================API 2=================================================
 
@@ -102,32 +90,32 @@ app.get("/matches/:matchId/", async (request, response) => {
 
 app.get("/players/:playerId/matches", async (request, response) => {
   const { playerId } = request.params;
-  const query = `select * from match_details where match_id=
-  (select match_id from player_match_score where player_id=${playerId});`;
+  const query = `select * from match_details where match_id in
+  (select distinct match_id from player_match_score where player_id=${playerId});`;
 
-  let dbResponse = await db.get(query);
-  const { match_id, match, year } = dbResponse;
-  let obj = {
-    matchId: match_id,
-    match: match,
-    year: year,
-  };
-  response.send(obj);
+  const dbResponse = await db.all(query);
+  const res = dbResponse.map((obj) => ({
+    matchId: obj.match_id,
+    match: obj.match,
+    year: obj.year,
+  }));
+
+  response.send(res);
 });
 // ===============================API 6=================================================
 
 app.get("/matches/:matchId/players", async (request, response) => {
   const { matchId } = request.params;
-  const query = `select * from player_details where player_id=
-  (select player_id from player_match_score where match_id=${matchId});`;
+  const query = `select * from player_details where player_id in 
+  (select distinct player_id from player_match_score where match_id=${matchId});`;
 
-  let dbResponse = await db.get(query);
-  const { player_id, player_name } = dbResponse;
-  let obj = {
-    playerId: player_id,
-    playerName: player_name,
-  };
-  response.send(obj);
+  const dbResponse = await db.all(query);
+  const res = dbResponse.map((obj) => ({
+    playerId: obj.player_id,
+    playerName: obj.player_name,
+  }));
+
+  response.send(res);
 });
 // ===============================API 7=================================================
 
@@ -135,12 +123,13 @@ app.get("/players/:playerId/playerScores", async (request, response) => {
   const { playerId } = request.params;
   const query = `select player_id,sum(score) as totalScore,sum(fours) as totalFours,sum(sixes) as totalSixes from player_match_score where player_id=${playerId};
   `;
-  const q2 = `select player_name from player_details where player_id=${playerId};`;
+  const q2 = `select * from player_details where player_id=${playerId};`;
 
-  const { player_name } = await db.get(q2);
+  const res = await db.get(q2);
 
   let dbResponse = await db.get(query);
   const { player_id, totalScore, totalFours, totalSixes } = dbResponse;
+  const { player_name } = res;
   let obj = {
     playerId: player_id,
     playerName: player_name,
